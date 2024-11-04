@@ -296,6 +296,9 @@ app.get("/", (req, res) => {
   res.send("API de Mr CarWash & Parking");
 });
 
-app.listen(3000, () => {
-  console.log("Server on port 3000");
+const PORT = process.env.PORT || 3000;
+
+// Iniciar el servidor
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en el puerto ${PORT}`);
 });
