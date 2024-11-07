@@ -147,7 +147,7 @@ app.put("/api/vehiculos/:placa", (req, res) => {
 // Eliminar un vehiculo por Placa
 app.delete("/api/vehiculos/:placa", (req, res) => {
   const data = readData();
-  const placa = parseInt(req.params.placa);
+  const placa = req.params.placa;
   const index = data.Vehiculos.findIndex((v) => v.Placa === placa);
 
   if (index !== -1) {
@@ -317,7 +317,7 @@ app.post("/api/vehiculos/:placa/servicios", (req, res) => {
   };
 
   // Verificar si el vehículo existe
-  const vehiculo = data.Vehiculoss.find((v) => v.Placa === placa);
+  const vehiculo = data.Vehiculos.find((v) => v.Placa === placa);
   if (!vehiculo) {
     return res.status(404).json({ message: "Vehículo no encontrado" });
   }
@@ -480,7 +480,6 @@ app.get("/", (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en el puerto ${PORT}`);
 });
