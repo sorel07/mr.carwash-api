@@ -14,10 +14,31 @@ const dataPath = path.join(__dirname, "db", "data.json");
 const readData = () => {
   try {
     const data = fs.readFileSync(dataPath, "utf-8");
-    return JSON.parse(data);
+    const parsedData = JSON.parse(data);
+
+    // Asegurar que todas las propiedades existen
+    parsedData.Clientes = parsedData.Clientes || [];
+    parsedData.Vehiculos = parsedData.Vehiculos || [];
+    parsedData.Tarifas_Parking = parsedData.Tarifas_Parking || [];
+    parsedData.Servicios_Car_Wash = parsedData.Servicios_Car_Wash || [];
+    parsedData.Vehiculo_Servicios = parsedData.Vehiculo_Servicios || [];
+    parsedData.Facturas_Car_Wash = parsedData.Facturas_Car_Wash || [];
+    parsedData.Tickets_Parking = parsedData.Tickets_Parking || [];
+    parsedData.Facturas_Parking = parsedData.Facturas_Parking || [];
+
+    return parsedData;
   } catch (err) {
     console.error("Error leyendo data.json:", err);
-    return {};
+    return {
+      Clientes: [],
+      Vehiculos: [],
+      Tarifas_Parking: [],
+      Servicios_Car_Wash: [],
+      Vehiculo_Servicios: [],
+      Facturas_Car_Wash: [],
+      Tickets_Parking: [],
+      Facturas_Parking: []
+    };
   }
 };
 
@@ -33,7 +54,7 @@ const writeData = (data) => {
 // Obtener todos los clientes
 app.get("/api/clientes", (req, res) => {
   const data = readData();
-  res.json(data.Clientes);
+  res.json(data.Clientes || []);
 });
 
 // Obtener un cliente por Cedula
@@ -84,7 +105,6 @@ app.delete("/api/clientes/:cedula", (req, res) => {
   const data = readData();
   const cedula = parseInt(req.params.cedula);
   const index = data.Clientes.findIndex((c) => c.Cedula === cedula);
-  data.Vehiculo;
 
   if (index !== -1) {
     const eliminado = data.Clientes.splice(index, 1);
@@ -98,7 +118,7 @@ app.delete("/api/clientes/:cedula", (req, res) => {
 // Obtener todos los vehiculos
 app.get("/api/vehiculos", (req, res) => {
   const data = readData();
-  res.json(data.Vehiculos);
+  res.json(data.Vehiculos || []);
 });
 
 // Obtener un vehiculo por Placa
@@ -160,13 +180,13 @@ app.delete("/api/vehiculos/:placa", (req, res) => {
 });
 
 // Obtener todas las tarifas de parking
-app.get("/api/tarifas-parking", (req, res) => {
+app.get("/api/tarifas_parking", (req, res) => {
   const data = readData();
-  res.json(data.Tarifas_Parking);
+  res.json(data.Tarifas_Parking || []);
 });
 
 // Obtener una tarifa por ID
-app.get("/api/tarifas-parking/:id", (req, res) => {
+app.get("/api/tarifas_parking/:id", (req, res) => {
   const data = readData();
   const id = parseInt(req.params.id);
   const tarifa = data.Tarifas_Parking.find((t) => t.id === id);
@@ -178,7 +198,7 @@ app.get("/api/tarifas-parking/:id", (req, res) => {
 });
 
 // Crear una nueva tarifa de parking
-app.post("/api/tarifas-parking", (req, res) => {
+app.post("/api/tarifas_parking", (req, res) => {
   const data = readData();
   const nuevaTarifa = req.body;
 
@@ -195,7 +215,7 @@ app.post("/api/tarifas-parking", (req, res) => {
 });
 
 // Actualizar una tarifa por ID
-app.put("/api/tarifas-parking/:id", (req, res) => {
+app.put("/api/tarifas_parking/:id", (req, res) => {
   const data = readData();
   const id = parseInt(req.params.id);
   const index = data.Tarifas_Parking.findIndex((t) => t.id === id);
@@ -213,7 +233,7 @@ app.put("/api/tarifas-parking/:id", (req, res) => {
 });
 
 // Eliminar una tarifa por ID
-app.delete("/api/tarifas-parking/:id", (req, res) => {
+app.delete("/api/tarifas_parking/:id", (req, res) => {
   const data = readData();
   const id = parseInt(req.params.id);
   const index = data.Tarifas_Parking.findIndex((t) => t.id === id);
@@ -230,7 +250,7 @@ app.delete("/api/tarifas-parking/:id", (req, res) => {
 // Obtener todos los servicios de Car Wash
 app.get("/api/servicios_car_wash", (req, res) => {
   const data = readData();
-  res.json(data.Servicios_Car_Wash);
+  res.json(data.Servicios_Car_Wash || []);
 });
 
 // Obtener un servicio de Car Wash por ID
@@ -300,7 +320,7 @@ app.get("/api/vehiculos/:placa/servicios", (req, res) => {
   const data = readData();
   const placa = req.params.placa;
 
-  const serviciosRealizados = data.Vehiculos_Servicios.filter(
+  const serviciosRealizados = data.Vehiculo_Servicios.filter(
     (vs) => vs.Placa_Vehiculo === placa
   );
 
@@ -324,13 +344,13 @@ app.post("/api/vehiculos/:placa/servicios", (req, res) => {
 
   // Generar un nuevo ID
   const nuevoId =
-    data.Vehiculos_Servicios.length > 0
-      ? Math.max(...data.Vehiculos_Servicios.map((vs) => vs.id)) + 1
+    data.Vehiculo_Servicios.length > 0
+      ? Math.max(...data.Vehiculo_Servicios.map((vs) => vs.id)) + 1
       : 1;
   nuevoRegistro.id = nuevoId;
   nuevoRegistro.Placa_Vehiculo = placa;
 
-  data.Vehiculos_Servicios.push(nuevoRegistro);
+  data.Vehiculo_Servicios.push(nuevoRegistro);
   writeData(data);
   res.status(201).json(nuevoRegistro);
 });
@@ -353,7 +373,7 @@ app.post("/api/facturas_car_wash", (req, res) => {
   }
 
   // Obtener los servicios no facturados realizados al vehículo
-  const serviciosNoFacturados = data.Vehiculos_Servicios.filter(
+  const serviciosNoFacturados = data.Vehiculo_Servicios.filter(
     (vs) => vs.Placa_Vehiculo === Placa_Vehiculo && !vs.Facturado
   );
 
@@ -407,7 +427,7 @@ app.post("/api/facturas_car_wash", (req, res) => {
 // Obtener todas las facturas de Car Wash
 app.get("/api/facturas_car_wash", (req, res) => {
   const data = readData();
-  res.json(data.Facturas_Car_Wash);
+  res.json(data.Facturas_Car_Wash || []);
 });
 
 // ===================== Tickets y Facturas de Parking =====================
@@ -472,7 +492,7 @@ app.post("/api/facturas_parking", (req, res) => {
 // Obtener todas las facturas de parking
 app.get("/api/facturas_parking", (req, res) => {
   const data = readData();
-  res.json(data.Facturas_Parking);
+  res.json(data.Facturas_Parking || []);
 });
 
 app.get("/", (req, res) => {
